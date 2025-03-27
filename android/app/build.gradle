@@ -1,0 +1,55 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.my_first_project"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.example.my_first_project"
+//        minSdk = flutter.minSdkVersion
+        minSdk = 23
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    // Firebase BoM (Bill of Materials) to manage versions automatically
+    implementation platform("com.google.firebase:firebase-bom:33.11.0")
+
+    // Firebase SDKs
+    implementation "com.google.firebase:firebase-analytics"   // Example for Firebase Analytics
+    implementation "com.google.firebase:firebase-auth"       // Example for Firebase Authentication
+
+//    // Flutter dependencies
+//    implementation 'com.google.flutter:flutter_embedding_debug:1.0.0'  // Flutter integration for Android
+//
+//    // Other dependencies...
+}
+
+flutter {
+    source = "../.."
+}
+
+apply plugin: 'com.google.gms.google-services'  // Firebase Google services
