@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'addclose_people.dart'; // Ensure this file contains LoginPage class
@@ -33,13 +34,28 @@ class SafetyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
       ),
-      home: const MyApp(),
+      home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if(snapshot.connectionState == ConnectionState.waiting){
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            if(snapshot.data != null) {
+              return  FoolOm();
+            }
+
+            return const SignUpPage();
+            }),
     );
   }
 }
 
 class FoolOm extends StatelessWidget {
-  const FoolOm({super.key});
+   FoolOm({super.key});
+  final user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -90,8 +106,11 @@ class FoolOm extends StatelessWidget {
                       children: [
                         Text('Hey there! 👋',
                             style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 18)),
-                        const Text('Name',
-                            style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                        Text(
+                          user != null ? user!.email ?? 'No Email' : 'Guest',
+                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+
                       ],
                     ),
                   ],
@@ -125,7 +144,7 @@ class FoolOm extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (context) => const SOSActivatedScreen()),
                     );
-                  },  color: null,
+                  },  color: Colors.blue,
                 ),
               ),
               const SizedBox(width: 16),
@@ -164,7 +183,8 @@ class FoolOm extends StatelessWidget {
             subtitle: 'Track your journey with real-time updates',
             icon: Icons.map,
             imagePath: 'assets/logo3.jpg',
-            onTap: () {},
+            onTap: () {
+            },
           ),
         ],
       ),

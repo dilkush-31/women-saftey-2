@@ -1,7 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'first_page.dart'; // Correct path for the first page
-// import 'loginP_page.dart'; // If you plan to use this later, else you can remove this import
-// import 'main.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -18,17 +17,43 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
 
-  void _signUp(BuildContext context) {
+  // Firebase Auth instance
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Sign up method using Firebase Auth
+  Future<void> _signUp(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign-up successful!')),
-      );
-      Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const StartPage()), // You can change this to HomePage or LoginPage
+      try {
+        // Create user using FirebaseAuth
+        final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
-      });
+
+        // After successful sign-up, show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign-up successful!')),
+        );
+
+        // Navigate to the StartPage or HomePage after 2 seconds
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const StartPage()), // Change this to HomePage if needed
+          );
+        });
+      } on FirebaseAuthException catch (e) {
+        // Handle errors during sign-up
+        String errorMessage = 'An error occurred, please try again later.';
+        if (e.code == 'email-already-in-use') {
+          errorMessage = 'The email address is already in use.';
+        } else if (e.code == 'weak-password') {
+          errorMessage = 'The password is too weak.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
   }
 
@@ -135,7 +160,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 }
-
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -144,13 +168,13 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
 
   const CustomTextField({
+    Key? key,
     required this.controller,
     required this.hintText,
     required this.icon,
     this.obscureText = false,
     this.validator,
-    super.key,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -159,16 +183,14 @@ class CustomTextField extends StatelessWidget {
       child: TextFormField(
         controller: controller,
         obscureText: obscureText,
+        validator: validator,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon),
           hintText: hintText,
+          prefixIcon: Icon(icon, color: Colors.pink),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          filled: true,
-          fillColor: Colors.white,
         ),
-        validator: validator,
       ),
     );
   }

@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'main.dart';
 import 'signup_page.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.pink,
       ),
-      home: const  StartPage(),
+      home: const StartPage(),
     );
   }
 }
@@ -32,6 +34,38 @@ class LoginPageState extends State<StartPage> {
   bool _obscurePassword = true;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Function to handle login
+  Future<void> _signIn(BuildContext context) async {
+    try {
+      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login successful!')),
+      );
+
+      // Navigate to HomePage
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) =>  FoolOm()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'An error occurred, please try again.';
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Incorrect password. Please try again.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,13 +138,7 @@ class LoginPageState extends State<StartPage> {
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                   ),
-                  onPressed: () {
-                    // Navigate to the HomePage (main app)
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const FoolOm()),
-                    );
-                  },
+                  onPressed: () => _signIn(context), // Firebase sign-in method
                   child: const Text(
                     'Login',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
@@ -124,10 +152,9 @@ class LoginPageState extends State<StartPage> {
                   const Text("Not a member? ", style: TextStyle(fontSize: 14)),
                   GestureDetector(
                     onTap: () {
-                      // Navigate to the sign-up page
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const SignUpPage()), // Use SignUpPage
+                        MaterialPageRoute(builder: (context) => const SignUpPage()),
                       );
                     },
                     child: const Text(
@@ -157,6 +184,18 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const StartPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: const Center(
         child: Text('Welcome to the Home Page!'),
