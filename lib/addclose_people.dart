@@ -1,14 +1,85 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class AddClosePeoplePage extends StatelessWidget {
+class AddClosePeoplePage extends StatefulWidget {
   const AddClosePeoplePage({Key? key}) : super(key: key);
+
+  @override
+  _AddClosePeoplePageState createState() => _AddClosePeoplePageState();
+}
+
+class _AddClosePeoplePageState extends State<AddClosePeoplePage> {
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  // Add the contact to Firestore
+  Future<void> addEmergencyContact() async {
+    String name = _nameController.text;
+    String phoneNumber = _phoneController.text;
+
+    if (name.isEmpty || phoneNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both name and phone number')),
+      );
+      return;
+    }
+
+    String uid = FirebaseAuth.instance.currentUser?.uid ?? "";
+    if (uid.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User not authenticated')),
+      );
+      return;
+    }
+
+    try {
+      // Reference to the current user's document
+      DocumentReference userDocRef = FirebaseFirestore.instance.collection("users").doc(uid);
+
+      // Get the current emergency contacts field (if exists)
+      DocumentSnapshot userDocSnapshot = await userDocRef.get();
+      if (userDocSnapshot.exists) {
+        // Get the emergency contacts map
+        Map<String, dynamic> emergencyContacts = userDocSnapshot['emergency_contacts'] ?? {};
+
+        // Add new contact to the map
+        emergencyContacts[name] = phoneNumber;
+
+        // Update the Firestore document
+        await userDocRef.update({
+          'emergency_contacts': emergencyContacts,
+        });
+      } else {
+        // If document does not exist, create it and add emergency contacts
+        await userDocRef.set({
+          'emergency_contacts': {
+            name: phoneNumber,
+          },
+        });
+      }
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$name has been added as a close friend!')),
+      );
+
+      // Clear the input fields after adding the contact
+      _nameController.clear();
+      _phoneController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('Add Close People')),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Responsive breakpoints
           bool isMobile = constraints.maxWidth < 600;
           bool isTablet = constraints.maxWidth >= 600 && constraints.maxWidth < 1200;
 
@@ -51,10 +122,10 @@ class AddClosePeoplePage extends StatelessWidget {
                   ),
 
                   // Name Input Section
-                  _buildInputField('Enter Name:', isMobile, isTablet),
+                  _buildInputField('Enter Name:', isMobile, isTablet, controller: _nameController),
 
                   // Phone Number Input Section
-                  _buildInputField('Enter Phone Number:', isMobile, isTablet, isPhone: true),
+                  _buildInputField('Enter Phone Number:', isMobile, isTablet, controller: _phoneController, isPhone: true),
 
                   // Add Button
                   Container(
@@ -74,9 +145,7 @@ class AddClosePeoplePage extends StatelessWidget {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-                          // Add button functionality here
-                        },
+                        onTap: addEmergencyContact,
                         borderRadius: BorderRadius.circular(30),
                         child: Center(
                           child: Text(
@@ -101,7 +170,7 @@ class AddClosePeoplePage extends StatelessWidget {
     );
   }
 
-  Widget _buildInputField(String label, bool isMobile, bool isTablet, {bool isPhone = false}) {
+  Widget _buildInputField(String label, bool isMobile, bool isTablet, {bool isPhone = false, TextEditingController? controller}) {
     return Container(
       width: 331,
       margin: const EdgeInsets.only(bottom: 40),
@@ -134,6 +203,7 @@ class AddClosePeoplePage extends StatelessWidget {
               ],
             ),
             child: TextField(
+              controller: controller,
               keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
               decoration: const InputDecoration(
                 border: InputBorder.none,

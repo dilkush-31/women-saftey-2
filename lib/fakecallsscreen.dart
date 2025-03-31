@@ -39,6 +39,7 @@ class FakeCallsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 25,
                     fontFamily: 'Montserrat',
+                    color: Color(0xFFFF69B4),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
                   ),
@@ -52,6 +53,7 @@ class FakeCallsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontFamily: 'Montserrat',
+                    color: Color(0xFFFF69B4),
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.32,
                   ),
