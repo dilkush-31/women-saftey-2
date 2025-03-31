@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'addclose_people.dart';
 
@@ -8,186 +9,172 @@ class FakeCallsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFEAF1),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Back Button
-                Container(
-                  margin: const EdgeInsets.only(left: 10, top: 20),
-                  width: 54,
-                  height: 54,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF69B4),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.pink[50]!, Colors.white],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios),
                     onPressed: () => Navigator.pop(context),
                   ),
-                ),
-
-                const SizedBox(height: 31),
-
-                // Title
-                const Text(
-                  'Fake calls',
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontFamily: 'Montserrat',
-                    color: Color(0xFFFF69B4),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-
-                const SizedBox(height: 31),
-
-                // Description
-                const Text(
-                  'The Fake Call features help users escape uncomfortable or dangerous situations by triggering a simulated phone call.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'Montserrat',
-                    color: Color(0xFFFF69B4),
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.32,
-                  ),
-                ),
-
-                const SizedBox(height: 27),
-
-                // White Container
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 29,
+                  const SizedBox(height: 20),
+                  Text(
+                    'Fake Calls',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pink[400],
                     ),
+                  ),
+                  Text(
+                    'Trigger a simulated call to escape uncomfortable situations',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  Container(
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                          color: Colors.grey[200]!,
+                          blurRadius: 15,
+                          spreadRadius: 5,
                         ),
                       ],
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Saved Contacts:',
-                          style: TextStyle(
-                            fontSize: 23,
-                            fontFamily: 'Montserrat',
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.46,
+                        Text(
+                          'Saved Contacts',
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.pink[400],
                           ),
                         ),
-
-                        const SizedBox(height: 42),
-
-                        // Contact Buttons
-                        for (var contact in ['Mom', 'Dad', 'Guardian'])
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            child: Container(
-                              width: 262,
-                              height: 59,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFF69B4),
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  contact,
-                                  style: const TextStyle(
-                                    fontSize: 21,
-                                    fontFamily: 'Montserrat',
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: 0.42,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        const SizedBox(height: 29),
-
-                        // Add Button
-                        GestureDetector(
-                          onTap: () {
-                            print("Add button tapped");
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const AddClosePeoplePage()),
-                            );
-                          },
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF69B4),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFFFB7CE),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 48),
-
-                        // Call Now Button
+                        const SizedBox(height: 24),
+                        _buildContactButton('Mom', Icons.person_outline),
+                        const SizedBox(height: 16),
+                        _buildContactButton('Dad', Icons.person_outline),
+                        const SizedBox(height: 16),
+                        _buildContactButton('Guardian', Icons.person_outline),
+                        const SizedBox(height: 24),
                         Center(
-                          child: Container(
-                            width: 180,
-                            height: 59,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF69B4),
-                              borderRadius: BorderRadius.circular(28),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => const AddClosePeoplePage(),
                                 ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'CALL NOW',
-                                style: TextStyle(
-                                  fontSize: 21,
-                                  fontFamily: 'Montserrat',
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: 0.42,
-                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.add),
+                            label: Text(
+                              'Add New Contact',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pink[400],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 3,
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 132),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 40),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Add your call functionality here
+                      },
+                      icon: const Icon(Icons.phone, size: 28),
+                      label: Text(
+                        'Trigger Fake Call',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink[400],
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 64),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactButton(String name, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.pink[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.pink[200]!, width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            // Handle contact selection
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(icon, color: Colors.pink[400], size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  name,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.pink[400],
                   ),
                 ),
               ],

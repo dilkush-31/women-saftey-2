@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AddClosePeoplePage extends StatefulWidget {
   const AddClosePeoplePage({Key? key}) : super(key: key);
@@ -12,15 +13,28 @@ class AddClosePeoplePage extends StatefulWidget {
 class _AddClosePeoplePageState extends State<AddClosePeoplePage> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  bool _isLoading = false;
 
-  // Add the contact to Firestore
   Future<void> addEmergencyContact() async {
-    String name = _nameController.text;
-    String phoneNumber = _phoneController.text;
-
-    if (name.isEmpty || phoneNumber.isEmpty) {
+    if (_nameController.text.isEmpty || _phoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both name and phone number')),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                'Please enter both name and phone number',
+                style: GoogleFonts.poppins(),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
       return;
     }
@@ -28,191 +42,252 @@ class _AddClosePeoplePageState extends State<AddClosePeoplePage> {
     String uid = FirebaseAuth.instance.currentUser?.uid ?? "";
     if (uid.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not authenticated')),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Text('User not authenticated', style: GoogleFonts.poppins()),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
-      // Reference to the current user's document
-      DocumentReference userDocRef = FirebaseFirestore.instance.collection("users").doc(uid);
-
-      // Get the current emergency contacts field (if exists)
+      DocumentReference userDocRef = FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid);
       DocumentSnapshot userDocSnapshot = await userDocRef.get();
+
       if (userDocSnapshot.exists) {
-        // Get the emergency contacts map
-        Map<String, dynamic> emergencyContacts = userDocSnapshot['emergency_contacts'] ?? {};
-
-        // Add new contact to the map
-        emergencyContacts[name] = phoneNumber;
-
-        // Update the Firestore document
-        await userDocRef.update({
-          'emergency_contacts': emergencyContacts,
-        });
+        Map<String, dynamic> emergencyContacts =
+            userDocSnapshot['emergency_contacts'] ?? {};
+        emergencyContacts[_nameController.text] = _phoneController.text;
+        await userDocRef.update({'emergency_contacts': emergencyContacts});
       } else {
-        // If document does not exist, create it and add emergency contacts
         await userDocRef.set({
-          'emergency_contacts': {
-            name: phoneNumber,
-          },
+          'emergency_contacts': {_nameController.text: _phoneController.text},
         });
       }
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$name has been added as a close friend!')),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                '${_nameController.text} has been added as a close friend!',
+                style: GoogleFonts.poppins(),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
 
-      // Clear the input fields after adding the contact
       _nameController.clear();
       _phoneController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 8),
+              Text('Error: $e', style: GoogleFonts.poppins()),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Close People')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isMobile = constraints.maxWidth < 600;
-          bool isTablet = constraints.maxWidth >= 600 && constraints.maxWidth < 1200;
-
-          return Center(
-            child: SingleChildScrollView(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.pink[50]!, Colors.white],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Back Button
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      onPressed: () => Navigator.pop(context),
+                  const SizedBox(height: 20),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Add Close People',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.pink[400],
                     ),
                   ),
-
-                  // Icon and Title Section
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 40),
-                    child: Column(
-                      children: [
-                        Image.network(
-                          'https://cdn.builder.io/api/v1/image/assets/TEMP/c5ce82a0d0ffc0e017631ebd6754f0e1bc6c5b9e',
-                          width: 100,
-                          height: 100,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Add Close People',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontWeight: FontWeight.w700,
-                            fontSize: isMobile ? 20 : (isTablet ? 24 : 28),
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Add trusted contacts for emergency situations',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.grey[600],
                     ),
                   ),
-
-                  // Name Input Section
-                  _buildInputField('Enter Name:', isMobile, isTablet, controller: _nameController),
-
-                  // Phone Number Input Section
-                  _buildInputField('Enter Phone Number:', isMobile, isTablet, controller: _phoneController, isPhone: true),
-
-                  // Add Button
+                  const SizedBox(height: 40),
                   Container(
-                    width: isMobile ? 130 : (isTablet ? 150 : 166),
-                    height: isMobile ? 50 : (isTablet ? 56 : 62),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF69B4),
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: const [
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
                         BoxShadow(
-                          color: Color.fromRGBO(0, 0, 0, 0.25),
-                          offset: Offset(0, 4),
-                          blurRadius: 4,
+                          color: Colors.grey[200]!,
+                          blurRadius: 15,
+                          spreadRadius: 5,
                         ),
                       ],
                     ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: addEmergencyContact,
-                        borderRadius: BorderRadius.circular(30),
-                        child: Center(
-                          child: Text(
-                            'Add +',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontWeight: FontWeight.w700,
-                              fontSize: isMobile ? 18 : 21,
-                              color: Colors.white,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInputField(
+                          controller: _nameController,
+                          label: 'Full Name',
+                          icon: Icons.person_outline,
+                          hint: 'Enter contact\'s full name',
+                        ),
+                        const SizedBox(height: 24),
+                        _buildInputField(
+                          controller: _phoneController,
+                          label: 'Phone Number',
+                          icon: Icons.phone_outlined,
+                          hint: 'Enter contact\'s phone number',
+                          keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : addEmergencyContact,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pink[400],
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 56),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 3,
                             ),
+                            child:
+                                _isLoading
+                                    ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                    : Text(
+                                      'Add Contact',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildInputField(String label, bool isMobile, bool isTablet, {bool isPhone = false, TextEditingController? controller}) {
-    return Container(
-      width: 331,
-      margin: const EdgeInsets.only(bottom: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 21,
-              color: Colors.black,
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required String hint,
+    TextInputType? keyboardType,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[800],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.pink[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.pink[200]!, width: 1),
+          ),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[800]),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+              prefixIcon: Icon(icon, color: Colors.pink[400]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          Container(
-            height: isMobile ? 54 : (isTablet ? 64 : 74),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(
-                color: const Color(0xFFFF69B4),
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0xFFFF69B4),
-                  offset: Offset(0, 4),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: controller,
-              keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 20),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
