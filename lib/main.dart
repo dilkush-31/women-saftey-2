@@ -298,9 +298,7 @@ class _FoolOmState extends State<FoolOm> with SingleTickerProviderStateMixin {
             ],
           ),
           const SizedBox(height: 16),
-          EmergencyCallButton(
-            emergencyNumber: '9665510448', // Change this to your local emergency number
-          ),
+          EmergencyCallButton(),
           const SizedBox(height: 30),
           Text(
             'Emergency Contacts',
