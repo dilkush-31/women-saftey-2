@@ -12,28 +12,25 @@ class AddClosePeoplePage extends StatefulWidget {
 
 class _AddClosePeoplePageState extends State<AddClosePeoplePage> {
   final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> addEmergencyContact() async {
-    if (_nameController.text.isEmpty || _phoneController.text.isEmpty) {
+    if (_nameController.text.isEmpty || _emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                'Please enter both name and phone number',
-                style: GoogleFonts.poppins(),
-              ),
-            ],
-          ),
+          content: Text('Please enter both name and email address'),
           backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+        ),
+      );
+      return;
+    }
+
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(_emailController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a valid email address'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -71,11 +68,11 @@ class _AddClosePeoplePageState extends State<AddClosePeoplePage> {
       if (userDocSnapshot.exists) {
         Map<String, dynamic> emergencyContacts =
             userDocSnapshot['emergency_contacts'] ?? {};
-        emergencyContacts[_nameController.text] = _phoneController.text;
+        emergencyContacts[_nameController.text] = _emailController.text;
         await userDocRef.update({'emergency_contacts': emergencyContacts});
       } else {
         await userDocRef.set({
-          'emergency_contacts': {_nameController.text: _phoneController.text},
+          'emergency_contacts': {_nameController.text: _emailController.text},
         });
       }
 
@@ -100,7 +97,7 @@ class _AddClosePeoplePageState extends State<AddClosePeoplePage> {
       );
 
       _nameController.clear();
-      _phoneController.clear();
+      _emailController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -187,11 +184,11 @@ class _AddClosePeoplePageState extends State<AddClosePeoplePage> {
                         ),
                         const SizedBox(height: 24),
                         _buildInputField(
-                          controller: _phoneController,
-                          label: 'Phone Number',
-                          icon: Icons.phone_outlined,
-                          hint: 'Enter contact\'s phone number',
-                          keyboardType: TextInputType.phone,
+                          controller: _emailController,
+                          label: 'Email Address',
+                          icon: Icons.email_outlined,
+                          hint: 'Enter contact\'s email address',
+                          keyboardType: TextInputType.emailAddress,
                         ),
                         const SizedBox(height: 32),
                         SizedBox(

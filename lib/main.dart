@@ -14,12 +14,47 @@ import 'sos_alert.dart';
 import 'feature_cards.dart';
 import 'profile_page.dart';
 import 'community_forum.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart'; 
+import 'package:mailer/smtp_server/gmail.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'widgets/emergency_call_button.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(EmpowerMeApp());
+}
+
+class EmpowerMeApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          // Show loading indicator while checking auth state
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          
+          // If user is logged in, show main app
+          if (snapshot.hasData) {
+            return FoolOm();
+          }
+          
+          // If user is not logged in, show welcome screen
+          return WelcomeScreen();
+        },
+      ),
+    );
+  }
 }
 
 class SafetyApp extends StatelessWidget {
@@ -261,6 +296,10 @@ class _FoolOmState extends State<FoolOm> with SingleTickerProviderStateMixin {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          EmergencyCallButton(
+            emergencyNumber: '9665510448', // Change this to your local emergency number
           ),
           const SizedBox(height: 30),
           Text(
@@ -801,8 +840,14 @@ class _FoolOmState extends State<FoolOm> with SingleTickerProviderStateMixin {
       desiredAccuracy: LocationAccuracy.high,
     );
     String locationUrl =
-        "https://www.google.com/maps/search/?api=1&query=\${position.latitude},\${position.longitude}";
-    await SOSActivatedScreen(context, locationUrl, locationUrl: '');
+        "https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SOSActivated(locationUrl: locationUrl),
+      ),
+    );
   }
 
   Widget _buildClosePeopleCard() {
@@ -877,6 +922,196 @@ class _FoolOmState extends State<FoolOm> with SingleTickerProviderStateMixin {
                     'Add+',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SOSActivated extends StatefulWidget {
+  final String locationUrl;
+
+  const SOSActivated({
+    Key? key,
+    required this.locationUrl,
+  }) : super(key: key);
+
+  @override
+  State<SOSActivated> createState() => _SOSActivatedState();
+}
+
+class _SOSActivatedState extends State<SOSActivated> {
+  bool _isSending = false;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _sendEmergencyAlert() async {
+    if (_isSending) return;
+    setState(() => _isSending = true);
+
+    try {
+      // Get current user
+      String uid = _auth.currentUser?.uid ?? "";
+      if (uid.isEmpty) throw Exception('User not authenticated');
+
+      // Get emergency contacts from Firestore
+      DocumentSnapshot userDoc = await _firestore
+          .collection("users")
+          .doc(uid)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception('User document not found');
+      }
+
+      // Get emergency contacts
+      Map<String, dynamic> contacts = userDoc['emergency_contacts'] ?? {};
+      if (contacts.isEmpty) {
+        throw Exception('No emergency contacts found. Please add emergency contacts first.');
+      }
+
+      // Just log the alert in Firestore
+      await _firestore.collection('sos_alerts').add({
+        'user_id': uid,
+        'timestamp': FieldValue.serverTimestamp(),
+        'location': widget.locationUrl,
+        'recipients': contacts.values.toList(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Alert logged successfully'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      Navigator.pop(context);
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } finally {
+      setState(() => _isSending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.red[700]!,
+              Colors.red[900]!,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.warning_rounded,
+                  size: 80,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'SOS Alert',
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Send emergency alert to your saved contacts?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: _isSending ? null : _sendEmergencyAlert,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.red[700],
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 3,
+                  ),
+                  child: _isSending
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.red[700]!,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Sending Alert...',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          'Send Alert',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

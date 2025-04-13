@@ -79,7 +79,7 @@ class HelpSupportPage extends StatelessWidget {
                     {
                       'question': 'How does the SOS feature work?',
                       'answer':
-                          'When activated, the SOS feature immediately sends your location to your emergency contacts and local authorities if configured. It also starts recording audio and video evidence.',
+                          'When activated, the SOS feature logs your location and alert details to help track emergency situations. You can view your emergency contacts in the Emergency Contacts section.',
                     },
                     {
                       'question': 'How do I set up emergency contacts?',

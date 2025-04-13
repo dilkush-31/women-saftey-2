@@ -39,11 +39,13 @@ class LoginPageState extends State<StartPage> {
   Future<void> _signIn(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       try {
-        final UserCredential userCredential = await _auth
-            .signInWithEmailAndPassword(
-              email: _emailController.text.trim(),
-              password: _passwordController.text.trim(),
-            );
+        // Set persistence to LOCAL (this will persist the auth state)
+        await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+        
+        final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -62,10 +64,7 @@ class LoginPageState extends State<StartPage> {
           ),
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => FoolOm()),
-        );
+        // No need to navigate manually, StreamBuilder will handle it
       } catch (e) {
         String errorMessage = 'An error occurred, please try again.';
         if (e.toString().contains('user-not-found')) {
