@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -959,11 +961,14 @@ class _SOSActivatedState extends State<SOSActivated> {
       String uid = _auth.currentUser?.uid ?? "";
       if (uid.isEmpty) throw Exception('User not authenticated');
 
+      log("Uid is "+ uid);
       // Get emergency contacts from Firestore
       DocumentSnapshot userDoc = await _firestore
           .collection("users")
           .doc(uid)
           .get();
+
+      log(userDoc.toString());
 
       if (!userDoc.exists) {
         throw Exception('User document not found');
@@ -971,6 +976,7 @@ class _SOSActivatedState extends State<SOSActivated> {
 
       // Get emergency contacts
       Map<String, dynamic> contacts = userDoc['emergency_contacts'] ?? {};
+      log("Emergency COntacts = " + contacts.length.toString());
       if (contacts.isEmpty) {
         throw Exception('No emergency contacts found. Please add emergency contacts first.');
       }
