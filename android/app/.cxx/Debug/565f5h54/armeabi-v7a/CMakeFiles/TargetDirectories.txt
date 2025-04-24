@@ -1,0 +1,2 @@
+C:/Users/0m/AndroidStudioProjects/women-saftey-2/android/app/.cxx/Debug/565f5h54/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/0m/AndroidStudioProjects/women-saftey-2/android/app/.cxx/Debug/565f5h54/armeabi-v7a/CMakeFiles/rebuild_cache.dir

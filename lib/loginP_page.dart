@@ -4,6 +4,7 @@ import 'package:my_first_project/signup_page.dart';
 import 'dart:math';
 
 import 'first_page.dart';
+import 'main.dart';
 
 void main() {
   runApp(EmpowerMeApp());
@@ -145,7 +146,7 @@ class WelcomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const MyApp(),
+                            builder: (context) => const SafetyApp(),
                           ),
                         );
                       },

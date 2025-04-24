@@ -1,0 +1,2 @@
+C:/Users/0m/AndroidStudioProjects/women-saftey-2/android/app/.cxx/Debug/565f5h54/x86/CMakeFiles/edit_cache.dir
+C:/Users/0m/AndroidStudioProjects/women-saftey-2/android/app/.cxx/Debug/565f5h54/x86/CMakeFiles/rebuild_cache.dir

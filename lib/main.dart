@@ -5,24 +5,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'addclose_people.dart';
 import 'close_people_screen.dart';
 import 'email_service.dart';
 import 'fakecallsscreen.dart';
 import 'firebase_options.dart';
 import 'loginP_page.dart';
 import 'signup_page.dart';
-import 'sos_alert.dart';
-import 'feature_cards.dart';
 import 'profile_page.dart';
 import 'community_forum.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart'; 
-import 'package:mailer/smtp_server/gmail.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'widgets/emergency_call_button.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
