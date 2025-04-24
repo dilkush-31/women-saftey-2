@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -8,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'addclose_people.dart';
 import 'close_people_screen.dart';
+import 'email_service.dart';
 import 'fakecallsscreen.dart';
 import 'firebase_options.dart';
 import 'loginP_page.dart';
@@ -957,31 +957,33 @@ class _SOSActivatedState extends State<SOSActivated> {
     setState(() => _isSending = true);
 
     try {
-      // Get current user
       String uid = _auth.currentUser?.uid ?? "";
       if (uid.isEmpty) throw Exception('User not authenticated');
 
-      log("Uid is "+ uid);
-      // Get emergency contacts from Firestore
+      log("Uid is " + uid);
+
       DocumentSnapshot userDoc = await _firestore
           .collection("users")
           .doc(uid)
           .get();
 
-      log(userDoc.toString());
-
       if (!userDoc.exists) {
         throw Exception('User document not found');
       }
 
-      // Get emergency contacts
       Map<String, dynamic> contacts = userDoc['emergency_contacts'] ?? {};
-      log("Emergency COntacts = " + contacts.length.toString());
+      log("Emergency Contacts = " + contacts.length.toString());
       if (contacts.isEmpty) {
         throw Exception('No emergency contacts found. Please add emergency contacts first.');
       }
 
-      // Just log the alert in Firestore
+      String message = 'Emergency Alert!\nLocation: ${widget.locationUrl}';
+
+      // Parallel sending
+      await Future.wait(
+          contacts.values.map((email) => sendEmailViaBackend(email, message))
+      );
+
       await _firestore.collection('sos_alerts').add({
         'user_id': uid,
         'timestamp': FieldValue.serverTimestamp(),
@@ -991,13 +993,12 @@ class _SOSActivatedState extends State<SOSActivated> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Alert logged successfully'),
+          content: Text('Emergency alert sent successfully'),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 4),
         ),
       );
       Navigator.pop(context);
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
